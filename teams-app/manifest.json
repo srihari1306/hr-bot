@@ -1,0 +1,34 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.17/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.17",
+  "version": "1.0.0",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "packageName": "com.yourcompany.hrbot",
+  "developer": {
+    "name": "Your Company",
+    "websiteUrl": "https://yourcompany.com",
+    "privacyUrl": "https://yourcompany.com/privacy",
+    "termsOfUseUrl": "https://yourcompany.com/terms"
+  },
+  "name": { "short": "HR Policy Bot", "full": "HR Policy Assistant" },
+  "description": {
+    "short": "Ask HR policy questions",
+    "full": "AI-powered HR policy assistant. Ask questions about leave, benefits, and company policies."
+  },
+  "icons": {
+    "outline": "icon-outline.png",
+    "color": "icon-color.png"
+  },
+  "accentColor": "#6264A7",
+  "staticTabs": [
+    {
+      "entityId": "hrbot",
+      "name": "HR Bot",
+      "contentUrl": "https://YOUR-TUNNEL-URL",
+      "websiteUrl": "https://YOUR-TUNNEL-URL",
+      "scopes": ["personal", "team"]
+    }
+  ],
+  "permissions": ["identity", "messageTeamMembers"],
+  "validDomains": ["YOUR-TUNNEL-DOMAIN"]
+}

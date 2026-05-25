@@ -1,0 +1,8 @@
+azure-ai-documentintelligence
+azure-search-documents
+azure-storage-blob
+openai
+tiktoken
+numpy
+python-dotenv
+pytest

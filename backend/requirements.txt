@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+openai
+azure-search-documents
+azure-storage-blob
+tiktoken
+redis
+python-dotenv
+sse-starlette
+pydantic-settings
