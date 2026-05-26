@@ -3,9 +3,10 @@ from typing import Optional
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str                        # text, OR base64 audio if voice_input=True
     conversation_id: str
     user_id: str = "local-dev-user"   # hardcoded for local dev; replaced by JWT claim in prod
+    voice_input: bool = False
 
 
 class FeedbackRequest(BaseModel):

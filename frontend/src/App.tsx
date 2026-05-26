@@ -6,7 +6,7 @@ import { useChat } from "./hooks/useChat";
 import "./app.css";
 
 export default function App() {
-  const { messages, sendMessage, isStreaming, conversationId } = useChat();
+  const { messages, sendMessage, isStreaming, conversationId, voice } = useChat();
   const [teamsInitialized, setTeamsInitialized] = useState(false);
 
   useEffect(() => {
@@ -61,7 +61,13 @@ export default function App() {
       />
 
       {/* Input */}
-      <InputBar onSend={sendMessage} disabled={isStreaming} />
+      <InputBar
+        onSend={sendMessage}
+        disabled={isStreaming}
+        voiceState={voice.voiceState}
+        onVoiceStart={voice.startRecording}
+        onVoiceStop={voice.stopRecording}
+      />
     </div>
   );
 }

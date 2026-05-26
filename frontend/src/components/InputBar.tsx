@@ -1,12 +1,20 @@
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
+import { VoiceButton } from "./VoiceButton";
+import type { VoiceState } from "../hooks/useVoice";
 
 export function InputBar({
   onSend,
   disabled,
+  voiceState,
+  onVoiceStart,
+  onVoiceStop,
 }: {
   onSend: (text: string) => void;
   disabled: boolean;
+  voiceState: VoiceState;
+  onVoiceStart: () => void;
+  onVoiceStop: () => void;
 }) {
   const [value, setValue] = useState("");
 
@@ -52,6 +60,12 @@ export function InputBar({
           outline: "none",
           background: disabled ? "#F5F5F5" : "#FFF",
         }}
+      />
+      <VoiceButton
+        voiceState={voiceState}
+        onStart={onVoiceStart}
+        onStop={onVoiceStop}
+        disabled={disabled && voiceState === "idle"}
       />
       <button
         onClick={handleSend}

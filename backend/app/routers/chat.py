@@ -3,13 +3,14 @@ import json
 import logging
 import traceback
 from fastapi import APIRouter
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 from app.models.schemas import ChatRequest
 from app.services.embeddings import embed_query
 from app.services.retrieval import retrieve_chunks
 from app.services.parent_fetch import assemble_context
 from app.services.llm import stream_answer
 from app.services.session import get_history, append_turn
+from app.services.speech import transcribe_audio, synthesize_speech
 
 router = APIRouter()
 
@@ -22,11 +23,28 @@ async def chat(request: ChatRequest):
         full_answer = ""
 
         try:
+            # --- Handle voice input ---
+            query_text = request.message
+
+            if request.voice_input:
+                try:
+                    transcript, confidence = transcribe_audio(request.message)
+                    if confidence < 0.75 or not transcript:
+                        yield f"event: reprompt\ndata: {json.dumps({'message': 'Could not understand audio. Please try again.'})}\n\n"
+                        return
+                    query_text = transcript
+                    # Send transcript back so UI can display what was heard
+                    yield f"event: transcript\ndata: {json.dumps({'text': query_text})}\n\n"
+                except Exception as e:
+                    logging.error("STT error: %s\n%s", str(e), traceback.format_exc())
+                    yield f"event: error\ndata: {json.dumps({'message': f'STT error: {str(e)}'})}\n\n"
+                    return
+
             # 1. Embed query
-            query_vector = await embed_query(request.message)
+            query_vector = await embed_query(query_text)
 
             # 2. Retrieve child chunks
-            chunks = await retrieve_chunks(request.message, query_vector)
+            chunks = await retrieve_chunks(query_text, query_vector)
 
             # 3. Fetch parent sections + build citations
             if not chunks:
@@ -50,7 +68,7 @@ async def chat(request: ChatRequest):
             output_buffer = ""
             json_detected = False
 
-            stream = stream_answer(request.message, parent_sections, history)
+            stream = stream_answer(query_text, parent_sections, history)
             async for token in stream:
                 full_answer += token
                 output_buffer += token
@@ -90,7 +108,7 @@ async def chat(request: ChatRequest):
                     pass
 
             # 6. Save to session
-            await append_turn(request.conversation_id, request.message, full_answer)
+            await append_turn(request.conversation_id, query_text, full_answer)
 
             # 7. Send final metadata event
             metadata = {
@@ -113,3 +131,18 @@ async def chat(request: ChatRequest):
             "X-Accel-Buffering": "no"
         }
     )
+
+
+@router.get("/tts")
+async def tts(text: str):
+    """Synthesize text to MP3. Called by frontend after streaming completes."""
+    try:
+        audio_bytes = synthesize_speech(text)
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={"Cache-Control": "no-cache"}
+        )
+    except Exception as e:
+        logging.error("TTS error: %s\n%s", str(e), traceback.format_exc())
+        return Response(status_code=500, content=str(e))
