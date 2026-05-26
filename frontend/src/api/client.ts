@@ -4,9 +4,16 @@ export { BASE_URL };
 
 // ---------- shared SSE reader ----------
 
+type MetadataPayload = {
+  citations: any[];
+  suggested_questions: string[];
+  turn_id: string;
+  answer_text?: string;
+};
+
 type SSEHandlers = {
   onToken?: (token: string) => void;
-  onMetadata?: (metadata: { citations: any[]; suggested_questions: string[]; turn_id: string }) => void;
+  onMetadata?: (metadata: MetadataPayload) => void;
   onError?: (msg: string) => void;
   onTranscript?: (text: string) => void;
   onReprompt?: (msg: string) => void;
@@ -55,7 +62,7 @@ export async function postChatStream(
   message: string,
   conversationId: string,
   onToken: (token: string) => void,
-  onMetadata: (metadata: { citations: any[]; suggested_questions: string[]; turn_id: string }) => void,
+  onMetadata: (metadata: MetadataPayload) => void,
   onError: (msg: string) => void
 ): Promise<void> {
   try {
@@ -87,7 +94,7 @@ export async function postVoiceChatStream(
   conversationId: string,
   onTranscript: (text: string) => void,
   onToken: (token: string) => void,
-  onMetadata: (metadata: { citations: any[]; suggested_questions: string[]; turn_id: string }) => void,
+  onMetadata: (metadata: MetadataPayload) => void,
   onReprompt: (msg: string) => void,
   onError: (msg: string) => void
 ): Promise<void> {
@@ -114,20 +121,3 @@ export async function postVoiceChatStream(
   }
 }
 
-// ---------- feedback ----------
-
-export async function postFeedback(
-  conversationId: string,
-  turnId: string,
-  rating: "up" | "down"
-) {
-  await fetch(`${BASE_URL}/feedback`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      conversation_id: conversationId,
-      turn_id: turnId,
-      rating,
-    }),
-  });
-}

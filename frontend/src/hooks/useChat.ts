@@ -8,7 +8,6 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const conversationId = useRef<string>(uuidv4());
-  const lastAnswerRef = useRef<string>("");
 
   // ---- text chat ----
   const sendMessage = useCallback(async (text: string) => {
@@ -30,14 +29,12 @@ export function useChat() {
 
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setIsStreaming(true);
-    lastAnswerRef.current = "";
 
     await postChatStream(
       text,
       conversationId.current,
       // onToken
       (token) => {
-        lastAnswerRef.current += token;
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantMsgId
@@ -91,7 +88,6 @@ export function useChat() {
       streaming: true,
     }]);
     setIsStreaming(true);
-    lastAnswerRef.current = "";
 
     await postVoiceChatStream(
       audioBase64,
@@ -106,7 +102,6 @@ export function useChat() {
       },
       // onToken
       (token) => {
-        lastAnswerRef.current += token;
         setMessages((prev) =>
           prev.map((m) => m.id === assistantMsgId
             ? { ...m, content: m.content + token } : m)
@@ -121,9 +116,9 @@ export function useChat() {
             : m)
         );
         setIsStreaming(false);
-        // Auto-play TTS for voice responses
-        if (lastAnswerRef.current) {
-          voice.playTTS(lastAnswerRef.current, BASE_URL);
+        // Fix: use meta.answer_text from backend instead of stale ref
+        if (meta.answer_text) {
+          voice.playTTS(meta.answer_text, BASE_URL);
         }
       },
       // onReprompt

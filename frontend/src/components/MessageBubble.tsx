@@ -1,12 +1,11 @@
+import ReactMarkdown from "react-markdown";
 import type { Message } from "../types/chat";
 import { CitationChip } from "./CitationChip";
-import { FeedbackRow } from "./FeedbackRow";
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { TypingIndicator } from "./TypingIndicator";
 
 export function MessageBubble({
   message,
-  conversationId,
   onSuggestedQuestion,
 }: {
   message: Message;
@@ -40,7 +39,27 @@ export function MessageBubble({
           <TypingIndicator />
         ) : (
           <>
-            <div style={{ whiteSpace: "pre-wrap" }}>{message.content}</div>
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p style={{ margin: "0 0 8px" }}>{children}</p>,
+                ul: ({ children }) => <ul style={{ paddingLeft: 20, margin: "0 0 8px" }}>{children}</ul>,
+                ol: ({ children }) => <ol style={{ paddingLeft: 20, margin: "0 0 8px" }}>{children}</ol>,
+                li: ({ children }) => <li style={{ marginBottom: 4 }}>{children}</li>,
+                strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                em: ({ children }) => <em style={{ fontStyle: "italic" }}>{children}</em>,
+                code: ({ children }) => (
+                  <code style={{
+                    background: isUser ? "rgba(255,255,255,0.15)" : "#F0F0F0",
+                    padding: "1px 5px",
+                    borderRadius: 4,
+                    fontFamily: "monospace",
+                    fontSize: 13,
+                  }}>{children}</code>
+                ),
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
 
             {/* Citations */}
             {message.citations && message.citations.length > 0 && (
@@ -49,14 +68,6 @@ export function MessageBubble({
                   <CitationChip key={i} citation={c} />
                 ))}
               </div>
-            )}
-
-            {/* Feedback */}
-            {!isUser && !message.streaming && message.turnId && (
-              <FeedbackRow
-                conversationId={conversationId}
-                turnId={message.turnId}
-              />
             )}
 
             {/* Suggested questions */}

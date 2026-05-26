@@ -30,7 +30,16 @@ hr-bot/
 
 ```bash
 cp .env.example backend/.env
-# Edit backend/.env with your Azure keys
+# Edit backend/.env with your Azure service credentials
+```
+
+Required conversational memory settings for Azure Cache for Redis:
+
+```env
+AZURE_REDIS_HOST=your-cache-name.redis.cache.windows.net
+AZURE_REDIS_PORT=6380
+AZURE_REDIS_PASSWORD=your-primary-or-secondary-key
+AZURE_REDIS_HISTORY_TTL_SECONDS=7200
 ```
 
 ### 2. Ingestion Pipeline (run once to index HR documents)
@@ -90,5 +99,5 @@ Open http://localhost:5173 — the chat UI should load.
 | Azure AI Search | Hybrid vector + semantic search |
 | Azure Blob Storage | Parent section storage |
 | Azure Document Intelligence | PDF structure extraction |
-| Redis (optional) | Session/conversation history |
+| Azure Cache for Redis | Session/conversation history |
 # hr-bot

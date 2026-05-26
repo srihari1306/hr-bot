@@ -114,7 +114,8 @@ async def chat(request: ChatRequest):
             metadata = {
                 "citations": citations,
                 "suggested_questions": suggested_questions,
-                "turn_id": turn_id
+                "turn_id": turn_id,
+                "answer_text": full_answer       # used by frontend for TTS (avoids stale closure)
             }
             yield f"event: metadata\ndata: {json.dumps(metadata)}\n\n"
             yield "event: done\ndata: {}\n\n"

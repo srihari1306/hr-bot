@@ -1,19 +1,17 @@
 from fastapi import APIRouter
-import redis.asyncio as redis
-import os
+
+from app.services.session import get_redis
 
 router = APIRouter()
 
 
 @router.get("/health")
 async def health():
-    """Health check endpoint with Redis connectivity test."""
+    """Health check endpoint with Azure Cache for Redis connectivity test."""
     checks = {}
 
-    # Redis
     try:
-        r = redis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379"))
-        await r.ping()
+        await get_redis().ping()
         checks["redis"] = "ok"
     except Exception as e:
         checks["redis"] = f"error: {e}"
