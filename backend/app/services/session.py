@@ -1,11 +1,24 @@
+from asyncio import Lock as AsyncLock
 from threading import Lock
+
+from cachetools import TTLCache
 
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import AIMessage, HumanMessage
 
-MAX_MEMORY_MESSAGES = 6
+SESSION_TTL_SECONDS = 3600
+MAX_CONVERSATIONS = 10000
+MAX_TURNS = 5
+MAX_MEMORY_MESSAGES = MAX_TURNS * 2
 
-_memories: dict[str, InMemoryChatMessageHistory] = {}
+_memories: TTLCache[str, InMemoryChatMessageHistory] = TTLCache(
+    maxsize=MAX_CONVERSATIONS,
+    ttl=SESSION_TTL_SECONDS,
+)
+_conversation_locks: TTLCache[str, AsyncLock] = TTLCache(
+    maxsize=MAX_CONVERSATIONS,
+    ttl=SESSION_TTL_SECONDS,
+)
 _memory_lock = Lock()
 
 
@@ -16,6 +29,15 @@ def _get_memory(conversation_id: str) -> InMemoryChatMessageHistory:
             memory = InMemoryChatMessageHistory()
             _memories[conversation_id] = memory
         return memory
+
+
+def _get_conversation_lock(conversation_id: str) -> AsyncLock:
+    with _memory_lock:
+        lock = _conversation_locks.get(conversation_id)
+        if lock is None:
+            lock = AsyncLock()
+            _conversation_locks[conversation_id] = lock
+        return lock
 
 
 async def get_history(conversation_id: str) -> list[dict]:
@@ -37,12 +59,13 @@ async def get_history(conversation_id: str) -> list[dict]:
 
 async def append_turn(conversation_id: str, user_msg: str, assistant_msg: str) -> None:
     """Persist the latest turn in LangChain memory."""
-    memory = _get_memory(conversation_id)
-    await memory.aadd_messages(
-        [
-            HumanMessage(content=user_msg),
-            AIMessage(content=assistant_msg),
-        ]
-    )
-    if len(memory.messages) > MAX_MEMORY_MESSAGES:
-        memory.messages = memory.messages[-MAX_MEMORY_MESSAGES:]
+    async with _get_conversation_lock(conversation_id):
+        memory = _get_memory(conversation_id)
+        await memory.aadd_messages(
+            [
+                HumanMessage(content=user_msg),
+                AIMessage(content=assistant_msg),
+            ]
+        )
+        if len(memory.messages) > MAX_MEMORY_MESSAGES:
+            memory.messages = memory.messages[-MAX_MEMORY_MESSAGES:]
