@@ -8,9 +8,29 @@ export function useVoice(onTranscript: (base64: string) => void) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+
+  const resetPlayback = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.onended = null;
+      audioRef.current.onerror = null;
+      audioRef.current.onpause = null;
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+
+    setVoiceState("idle");
+  }, []);
 
   const startRecording = useCallback(async () => {
     setError(null);
+    resetPlayback();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream, { mimeType: "audio/webm;codecs=opus" });
@@ -41,41 +61,46 @@ export function useVoice(onTranscript: (base64: string) => void) {
       setError("Microphone access denied.");
       setVoiceState("idle");
     }
-  }, [onTranscript]);
+  }, [onTranscript, resetPlayback]);
 
   const stopRecording = useCallback(() => {
     mediaRecorderRef.current?.stop();
   }, []);
 
   const playTTS = useCallback(async (text: string, apiBase: string) => {
+    resetPlayback();
     setVoiceState("playing");
     try {
       const encoded = encodeURIComponent(text);
       const response = await fetch(`${apiBase}/tts?text=${encoded}`);
+      if (!response.ok) {
+        throw new Error("TTS request failed");
+      }
+
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-      }
+      audioUrlRef.current = url;
 
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended = () => {
-        setVoiceState("idle");
-        URL.revokeObjectURL(url);
+      audio.onended = resetPlayback;
+      audio.onerror = resetPlayback;
+      audio.onpause = () => {
+        if (audio.ended) {
+          return;
+        }
+        resetPlayback();
       };
-      audio.play();
+
+      await audio.play();
     } catch {
-      setVoiceState("idle");
+      resetPlayback();
     }
-  }, []);
+  }, [resetPlayback]);
 
   const stopPlayback = useCallback(() => {
-    audioRef.current?.pause();
-    setVoiceState("idle");
-  }, []);
+    resetPlayback();
+  }, [resetPlayback]);
 
   return {
     voiceState,
