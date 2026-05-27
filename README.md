@@ -33,14 +33,7 @@ cp .env.example backend/.env
 # Edit backend/.env with your Azure service credentials
 ```
 
-Required conversational memory settings for Azure Cache for Redis:
-
-```env
-AZURE_REDIS_HOST=your-cache-name.redis.cache.windows.net
-AZURE_REDIS_PORT=6380
-AZURE_REDIS_PASSWORD=your-primary-or-secondary-key
-AZURE_REDIS_HISTORY_TTL_SECONDS=7200
-```
+Conversational memory is handled in-process with LangChain windowed memory. No Redis setup is required for local development.
 
 ### 2. Ingestion Pipeline (run once to index HR documents)
 
@@ -80,7 +73,7 @@ npm run dev
 
 ```bash
 curl http://localhost:8000/api/health
-# → {"status":"ok","checks":{"redis":"..."}}
+# → {"status":"ok","checks":{"memory":"langchain_in_process"}}
 ```
 
 Open http://localhost:5173 — the chat UI should load.
@@ -99,5 +92,5 @@ Open http://localhost:5173 — the chat UI should load.
 | Azure AI Search | Hybrid vector + semantic search |
 | Azure Blob Storage | Parent section storage |
 | Azure Document Intelligence | PDF structure extraction |
-| Azure Cache for Redis | Session/conversation history |
+| LangChain in-process memory | Session/conversation history |
 # hr-bot

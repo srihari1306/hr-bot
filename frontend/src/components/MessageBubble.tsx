@@ -64,6 +64,9 @@ export function MessageBubble({
             {/* Citations */}
             {message.citations && message.citations.length > 0 && (
               <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 12, color: "#6B6B6B", marginBottom: 4 }}>
+                  Sources
+                </div>
                 {message.citations.map((c, i) => (
                   <CitationChip key={i} citation={c} />
                 ))}

@@ -3,6 +3,7 @@ import json
 from azure.storage.blob import BlobServiceClient
 
 _blob_client = None
+MAX_CITATIONS = 3
 
 
 def get_blob_client():
@@ -83,3 +84,23 @@ def assemble_context(chunks: list[dict], token_budget: int = 6000) -> tuple[list
             break
 
     return parent_sections, citations
+
+
+def limit_citations(citations: list[dict], max_items: int = MAX_CITATIONS) -> list[dict]:
+    """Keep a short, deduplicated citation list for the UI."""
+    trimmed: list[dict] = []
+    seen: set[str] = set()
+
+    for citation in citations:
+        heading = citation.get("heading", "").strip()
+        if not heading:
+            continue
+        normalized = heading.casefold()
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        trimmed.append({"heading": heading, "url": citation.get("url", "")})
+        if len(trimmed) >= max_items:
+            break
+
+    return trimmed
