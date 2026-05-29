@@ -3,21 +3,16 @@ from azure.core.credentials import AzureKeyCredential
 import os
 
 
-def extract_structure(file_path: str) -> dict:
-    """Extract structured content from a PDF using Azure Document Intelligence."""
-    client = DocumentIntelligenceClient(
+def _get_client():
+    """Create a Document Intelligence client from environment variables."""
+    return DocumentIntelligenceClient(
         endpoint=os.environ["AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"],
         credential=AzureKeyCredential(os.environ["AZURE_DOCUMENT_INTELLIGENCE_KEY"])
     )
-    with open(file_path, "rb") as f:
-        poller = client.begin_analyze_document(
-            "prebuilt-layout",
-            body=f,
-            content_type="application/octet-stream"
-        )
-    result = poller.result()
 
-    # Build structured output: list of {type, content, level, page}
+
+def _parse_result(result) -> dict:
+    """Parse a Document Intelligence result into a structured dict of elements."""
     elements = []
     for para in result.paragraphs or []:
         role = para.role or "paragraph"
@@ -59,3 +54,28 @@ def extract_structure(file_path: str) -> dict:
         })
 
     return {"elements": elements}
+
+
+def extract_structure(file_path: str) -> dict:
+    """Extract structured content from a PDF file path using Azure Document Intelligence."""
+    client = _get_client()
+    with open(file_path, "rb") as f:
+        poller = client.begin_analyze_document(
+            "prebuilt-layout",
+            body=f,
+            content_type="application/octet-stream"
+        )
+    result = poller.result()
+    return _parse_result(result)
+
+
+def extract_structure_from_bytes(pdf_bytes: bytes) -> dict:
+    """Extract structured content from raw PDF bytes (for Azure Functions / Power Automate)."""
+    client = _get_client()
+    poller = client.begin_analyze_document(
+        "prebuilt-layout",
+        body=pdf_bytes,
+        content_type="application/octet-stream"
+    )
+    result = poller.result()
+    return _parse_result(result)
