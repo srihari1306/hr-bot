@@ -6,3 +6,5 @@ tiktoken
 numpy
 python-dotenv
 azure-functions
+fastapi
+uvicorn
