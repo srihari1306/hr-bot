@@ -3,7 +3,6 @@
   "manifestVersion": "1.17",
   "version": "1.0.0",
   "id": "00000000-0000-0000-0000-000000000001",
-  "packageName": "com.yourcompany.hrbot",
   "developer": {
     "name": "Your Company",
     "websiteUrl": "https://yourcompany.com",
@@ -24,11 +23,11 @@
     {
       "entityId": "hrbot",
       "name": "HR Bot",
-      "contentUrl": "https://YOUR-TUNNEL-URL",
-      "websiteUrl": "https://YOUR-TUNNEL-URL",
+      "contentUrl": "https://6jtht7v8.inc1.devtunnels.ms:5173",
+      "websiteUrl": "https://6jtht7v8.inc1.devtunnels.ms:5173",
       "scopes": ["personal", "team"]
     }
   ],
   "permissions": ["identity", "messageTeamMembers"],
-  "validDomains": ["YOUR-TUNNEL-DOMAIN"]
+  "validDomains": ["https://6jtht7v8.inc1.devtunnels.ms:5173"]
 }
