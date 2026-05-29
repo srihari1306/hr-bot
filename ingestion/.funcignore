@@ -1,0 +1,9 @@
+.env
+local.settings.json
+.venv/
+__pycache__/
+*.pyc
+.vscode/
+ingestion_venv/
+venv/
+*.zip
