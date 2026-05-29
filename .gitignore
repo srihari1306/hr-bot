@@ -37,3 +37,6 @@ redis_data/
 
 # Teams
 *.zip
+
+
+local.settings.json
