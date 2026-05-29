@@ -3,12 +3,6 @@ import os
 from openai import AsyncAzureOpenAI
 from schemas.models import ChildChunk
 
-# client = AsyncAzureOpenAI(
-#     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT", ""),
-#     api_key=os.environ.get("AZURE_OPENAI_KEY", ""),
-#     api_version="2024-02-01"
-# )
-
 _client = None
 
 def get_openai_client():

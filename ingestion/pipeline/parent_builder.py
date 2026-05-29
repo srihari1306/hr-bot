@@ -1,6 +1,7 @@
+import hashlib
+import logging
 import tiktoken
 from schemas.models import ParentSection
-import hashlib
 
 enc = tiktoken.get_encoding("cl100k_base")
 
@@ -25,7 +26,7 @@ def build_parent_sections(
         token_count = len(enc.encode(full_text))
         # Warn if outside target range
         if not (1500 <= token_count <= 2500):
-            print(f"  Warning: section '{heading}' has {token_count} tokens")
+            logging.warning(f"Section '{heading}' has {token_count} tokens (target: 1500–2500)")
         section_id = hashlib.md5(
             f"{document_id}:{heading}".encode()
         ).hexdigest()[:12]
